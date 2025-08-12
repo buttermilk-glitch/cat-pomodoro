@@ -337,3 +337,12 @@ body {
 .popup-close:hover {
   transform: scale(1.05);
 }
+
+@media (max-width: 600px) {
+  .container {
+    width: 390px;
+  }
+  .cat {
+    margin-left: -20px;
+  }
+}
