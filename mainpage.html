@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LIVE - Main</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/style2.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="atass">
+        <img src="all the pictures/Ellipse landing page atas.png" alt="" />
+        <div class="wave-atas">
+          <img src="all the pictures/yowhat.png" alt="" />
+        </div>
+      </div>
+      <div class="header">
+        <img src="all the pictures/mdi_paw.png" alt="" class="paw" />
+      </div>
+
+      <div class="stats-bar">
+        <div class="coins">💰 <span id="coinCount">0</span></div>
+        <div class="energy-container">
+          <div class="energy-label">ENERGY</div>
+          <div class="energy-bar">
+            <div class="energy-fill" id="energyFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cat-area">
+        <div class="cat" id="catDisplay">🐱</div>
+        <div class="cat-status" id="catStatus">Your cat is waiting...</div>
+        <div class="warning" id="warningMessage"></div>
+      </div>
+
+      <div class="shop-section">
+        <div style="text-align: center">
+          <button class="btn btn-primary" onclick="toggleShop()" id="shopBtn">
+            OPEN SHOP
+          </button>
+        </div>
+        <div id="shopItems" style="display: none; margin-top: 15px">
+          <div class="shop-items">
+            <div class="shop-item">
+              <div class="shop-item-icon">🐟</div>
+              <div class="shop-item-name">FISH</div>
+              <div class="shop-item-price">5 coins</div>
+              <button
+                class="btn btn-secondary"
+                onclick="buyItem('fish', 5, 20)"
+              >
+                BUY
+              </button>
+            </div>
+            <div class="shop-item">
+              <div class="shop-item-icon">🥛</div>
+              <div class="shop-item-name">MILK</div>
+              <div class="shop-item-price">3 coins</div>
+              <button
+                class="btn btn-secondary"
+                onclick="buyItem('milk', 3, 15)"
+              >
+                BUY
+              </button>
+            </div>
+            <div class="shop-item">
+              <div class="shop-item-icon">🎵</div>
+              <div class="shop-item-name">MUSIC</div>
+              <div class="shop-item-price">8 coins</div>
+              <button class="btn btn-secondary" onclick="buyRandomMusic()">
+                BUY
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="activity-section">
+        <div style="text-align: center">
+          <button
+            class="btn btn-primary"
+            onclick="toggleActivityForm()"
+            id="addActivityBtn"
+          >
+            ADD ACTIVITY
+          </button>
+          <div id="timerDisplay" style="display: none; margin-bottom: 15px">
+            <div
+              style="
+                color: white;
+                font-family: 'Press Start 2P', cursive;
+                font-size: 14px;
+                margin-bottom: 10px;
+              "
+              id="currentActivityName"
+            ></div>
+            <div
+              style="
+                color: #ff6b9d;
+                font-family: 'Press Start 2P', cursive;
+                font-size: 18px;
+                margin-bottom: 15px;
+              "
+              id="timerText"
+            >
+              00:00
+            </div>
+          </div>
+          <button
+            class="btn btn-primary"
+            onclick="completeActivity()"
+            style="display: none"
+            id="completeBtn"
+          >
+            COMPLETE ACTIVITY
+          </button>
+        </div>
+        <div id="activityForm" style="display: none; margin-top: 15px">
+          <input
+            type="text"
+            class="activity-input"
+            id="activityInput"
+            placeholder="What are you doing?"
+          />
+          <input
+            type="number"
+            class="activity-duration"
+            id="durationInput"
+            placeholder="Duration (minutes)"
+            min="1"
+          />
+          <div style="text-align: center; margin-top: 10px">
+            <button class="btn btn-secondary" onclick="startActivity()">
+              START
+            </button>
+            <button class="btn btn-secondary" onclick="cancelActivity()">
+              CANCEL
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="foot-part">
+        <p class="bellow">LIVE.</p>
+      </div>
+    </div>
+
+    <script>
+      const catIcons = {
+        Sad: "all the pictures/cat-sad.gif",
+        okay: "all the pictures/cat-ok.gif",
+        happy: "all the pictures/cat-fine.gif",
+        veryHappy: "all the pictures/cat-happy.gif",
+      };
+      // Game state
+      let gameState = {
+        energy: 100,
+        coins: 0,
+        activities: [],
+        lastUpdate: Date.now(),
+        currentActivity: null,
+      };
+
+      let timerInterval = null;
+
+      // Music collection
+      const musicCollection = [
+        "Hey Jude - The Beatles",
+        "Heaven and Back - Chase Atlantic",
+        "We Hug Now - Sydney Rose",
+        "Headphones On - Addison Rae",
+        "Don't Look Back in Anger - The Oasis",
+        "Margaret - Lana Del Rey",
+        "Keeping Tabs - Niki",
+        "Strawberry Blonde - Mitski",
+        "No. 1 Party Anthem - Arctic Monkeys",
+        "Heaven Knows I'm Miserable Now - The Smiths",
+      ];
+
+      // Show popup
+      function showPopup(icon, title, message) {
+        const popup = document.createElement("div");
+        popup.className = "popup-overlay";
+        popup.innerHTML = `
+                <div class="popup">
+                    <div class="popup-icon">${icon}</div>
+                    <div class="popup-title">${title}</div>
+                    <div class="popup-message">${message}</div>
+                    <button class="popup-close" onclick="closePopup()">CLOSE</button>
+                </div>
+            `;
+        document.body.appendChild(popup);
+      }
+
+      // Close popup
+      function closePopup() {
+        const popup = document.querySelector(".popup-overlay");
+        if (popup) {
+          popup.remove();
+        }
+      }
+
+      // Toggle shop
+      function toggleShop() {
+        const shop = document.getElementById("shopItems");
+        const btn = document.getElementById("shopBtn");
+
+        if (shop.style.display === "none") {
+          shop.style.display = "block";
+          btn.textContent = "CLOSE SHOP";
+        } else {
+          shop.style.display = "none";
+          btn.textContent = "OPEN SHOP";
+        }
+      }
+
+      // Toggle activity form
+      function toggleActivityForm() {
+        const form = document.getElementById("activityForm");
+        const btn = document.getElementById("addActivityBtn");
+
+        if (form.style.display === "none") {
+          form.style.display = "block";
+          btn.textContent = "NAH, CLOSE";
+        } else {
+          form.style.display = "none";
+          btn.textContent = "ADD ACTIVITY";
+          clearActivityForm();
+        }
+      }
+
+      // Clear activity form
+      function clearActivityForm() {
+        document.getElementById("activityInput").value = "";
+        document.getElementById("durationInput").value = "";
+      }
+
+      // Cancel activity
+      function cancelActivity() {
+        toggleActivityForm();
+      }
+
+      // Start activity
+      function startActivity() {
+        const activityInput = document.getElementById("activityInput");
+        const durationInput = document.getElementById("durationInput");
+
+        if (!activityInput.value.trim() || !durationInput.value) {
+          showPopup(
+            "⚠️",
+            "MISSING INFO",
+            "Please enter an activity and duration!"
+          );
+          return;
+        }
+
+        gameState.currentActivity = {
+          name: activityInput.value.trim(),
+          duration: parseInt(durationInput.value),
+          startTime: Date.now(),
+        };
+
+        // Hide form and show timer and complete button
+        toggleActivityForm();
+        document.getElementById("addActivityBtn").style.display = "none";
+        document.getElementById("timerDisplay").style.display = "block";
+        document.getElementById("completeBtn").style.display = "inline-block";
+        document.getElementById("currentActivityName").textContent =
+          gameState.currentActivity.name.toUpperCase();
+
+        // Start timer
+        startTimer();
+
+        showPopup(
+          "🚀",
+          "ACTIVITY STARTED",
+          `Started: ${gameState.currentActivity.name} for ${gameState.currentActivity.duration} minutes!`
+        );
+        saveGameState();
+      }
+
+      // Start timer
+      function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+          if (!gameState.currentActivity) return;
+
+          const elapsed = Math.floor(
+            (Date.now() - gameState.currentActivity.startTime) / 1000
+          );
+          const totalSeconds = gameState.currentActivity.duration * 60;
+          const remainingSeconds = Math.max(0, totalSeconds - elapsed);
+
+          const minutes = Math.floor(remainingSeconds / 60);
+          const seconds = remainingSeconds % 60;
+
+          document.getElementById("timerText").textContent = `${minutes
+            .toString()
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+          // Auto-complete when timer reaches 0
+          if (remainingSeconds === 0) {
+            clearInterval(timerInterval);
+            showPopup(
+              "⏰",
+              "TIME'S UP!",
+              "Activity completed automatically! Well done! 🎉"
+            );
+            setTimeout(() => {
+              closePopup();
+              completeActivity();
+            }, 2000);
+          }
+        }, 1000);
+      }
+
+      // Complete activity
+      function completeActivity() {
+        if (!gameState.currentActivity) {
+          showPopup("❌", "NO ACTIVITY", "No activity in progress!");
+          return;
+        }
+
+        const activity = gameState.currentActivity;
+        const coinsEarned = 10; // Fixed 10 coins per completed activity
+
+        gameState.coins += coinsEarned;
+        gameState.activities.unshift({
+          name: activity.name,
+          duration: activity.duration,
+          coinsEarned: coinsEarned,
+          completedAt: Date.now(),
+        });
+
+        // If cat was dead, revive it
+        if (gameState.energy <= 0) {
+          gameState.energy = 20;
+        }
+
+        gameState.currentActivity = null;
+
+        // Clear timer
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+
+        // Show add activity button and hide timer and complete button
+        document.getElementById("addActivityBtn").style.display =
+          "inline-block";
+        document.getElementById("timerDisplay").style.display = "none";
+        document.getElementById("completeBtn").style.display = "none";
+
+        showPopup(
+          "🎉",
+          "COMPLETED!",
+          `Great job! You earned ${coinsEarned} coins!`
+        );
+        updateDisplay();
+        saveGameState();
+      }
+
+      // Buy item
+      function buyItem(item, cost, energyBoost) {
+        if (gameState.coins < cost) {
+          showPopup(
+            "💸",
+            "NOT ENOUGH COINS",
+            "You need more coins to buy this item!"
+          );
+          return;
+        }
+
+        if (gameState.energy <= 0) {
+          showPopup(
+            "💀",
+            "CAT IS DEAD",
+            "Your cat is dead! Complete an activity first to revive it!"
+          );
+          return;
+        }
+
+        gameState.coins -= cost;
+        gameState.energy = Math.min(100, gameState.energy + energyBoost);
+
+        const itemEmoji = item === "fish" ? "🐟" : "🥛";
+        showPopup(
+          itemEmoji,
+          "ITEM PURCHASED",
+          `Bought ${item}! Your cat gained ${energyBoost} energy! 😸`
+        );
+        updateDisplay();
+        saveGameState();
+      }
+
+      // Buy random music
+      function buyRandomMusic() {
+        if (gameState.coins < 8) {
+          showPopup(
+            "💸",
+            "NOT ENOUGH COINS",
+            "You need more coins to buy music!"
+          );
+          return;
+        }
+
+        if (gameState.energy <= 0) {
+          showPopup(
+            "💀",
+            "CAT IS DEAD",
+            "Your cat is dead! Complete an activity first to revive it!"
+          );
+          return;
+        }
+
+        const randomMusic =
+          musicCollection[Math.floor(Math.random() * musicCollection.length)];
+
+        gameState.coins -= 8;
+        gameState.energy = Math.min(100, gameState.energy + 30);
+
+        showPopup(
+          "🎵",
+          "NOW PLAYING",
+          `${randomMusic}\n\nYour cat gained 30 energy and is vibing! 😸`
+        );
+        updateDisplay();
+        saveGameState();
+      }
+
+      // Load saved state
+      function loadGameState() {
+        const saved = localStorage.getItem("liveGameState");
+        if (saved) {
+          gameState = { ...gameState, ...JSON.parse(saved) };
+          // Update energy based on time passed
+          const timePassed = Date.now() - gameState.lastUpdate;
+          const energyLoss = Math.floor(timePassed / (60 * 1000)); // 1 energy per minute
+          gameState.energy = Math.max(0, gameState.energy - energyLoss);
+        }
+        updateDisplay();
+      }
+
+      // Save game state
+      function saveGameState() {
+        gameState.lastUpdate = Date.now();
+        localStorage.setItem("liveGameState", JSON.stringify(gameState));
+      }
+
+      // Update display
+      function updateDisplay() {
+        document.getElementById("coinCount").textContent = gameState.coins;
+        document.getElementById("energyFill").style.width =
+          gameState.energy + "%";
+
+        const catDisplay = document.getElementById("catDisplay");
+        const catStatus = document.getElementById("catStatus");
+        const warningMessage = document.getElementById("warningMessage");
+
+        // Update cat status
+        if (gameState.energy <= 0) {
+          catDisplay.textContent = "💀";
+          catDisplay.className = "cat dead";
+          catStatus.textContent = "Your cat has died.. missioh failed!";
+          warningMessage.textContent = "Start over with activities to revive!";
+        } else if (gameState.energy <= 20) {
+          catDisplay.innerHTML = `<img src="${catIcon.Sad}" alt="Sad Cat" style="width:320px; height: 320px; image-rendering: pixelated;">`;
+          catDisplay.className = "cat sad pulse";
+          catStatus.textContent = "Your cat is very weak!";
+          warningMessage.textContent = "URGENT: Feed your cat soon!";
+        } else if (gameState.energy <= 50) {
+          catDisplay.innerHTML = `<img src="${catIcons.okay}" alt="Okay Cat" style="width:320px; height:320px; image-rendering: pixelated;">`;
+          catDisplay.className = "cat okay";
+          catStatus.textContent = "Your cat is getting tired...";
+          warningMessage.textContent = "";
+        } else if (gameState.energy <= 80) {
+          catDisplay.innerHTML = `<img src="${catIcons.happy}" alt="Happy Cat" style="width: 320px; height: 320px; image-rendering: pixelated;">`;
+          catDisplay.className = "cat happy";
+          catStatus.textContent = "Your cat is doing well!";
+          warningMessage.textContent = "";
+        } else {
+          catDisplay.innerHTML = `<img src="${catIcons.veryHappy}" alt="Very Happy Cat" style="width: 320px; height:320px; image-rendering: pixelated;">`;
+          catDisplay.className = "cat happy";
+          catStatus.textContent = "Your cat is very happy!";
+          warningMessage.textContent = "";
+        }
+
+        // Update button states
+        if (gameState.currentActivity) {
+          document.getElementById("addActivityBtn").style.display = "none";
+          document.getElementById("timerDisplay").style.display = "block";
+          document.getElementById("completeBtn").style.display = "inline-block";
+          document.getElementById("currentActivityName").textContent =
+            gameState.currentActivity.name.toUpperCase();
+          // Restart timer if there's an active activity
+          if (!timerInterval) {
+            startTimer();
+          }
+        } else {
+          document.getElementById("addActivityBtn").style.display =
+            "inline-block";
+          document.getElementById("timerDisplay").style.display = "none";
+          document.getElementById("completeBtn").style.display = "none";
+        }
+      }
+
+      // Energy decay over time
+      setInterval(() => {
+        if (gameState.energy > 0) {
+          gameState.energy = Math.max(0, gameState.energy - 1);
+          updateDisplay();
+          saveGameState();
+        }
+      }, 60000); // 1 energy per minute
+
+      // Initialize
+      loadGameState();
+
+      // Save every 30 seconds
+      setInterval(saveGameState, 30000);
+    </script>
+  </body>
+</html>
