@@ -77,6 +77,7 @@
   height: 92px;
   width: 250px;
   border: solid;
+  top: 1300px;
 }
 .start:active {
   background-color: rgb(93, 52, 100);
